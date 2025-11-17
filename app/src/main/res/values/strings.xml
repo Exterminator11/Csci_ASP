@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Csci_ASP</string>
+    <string name="action_settings">Settings</string>
+    <string name="scrapbook_heading">Create a scrapbook</string>
+    <string name="scrapbook_subtitle">Pick your favorite photos, apply a themed template, and export everything as a shareable PDF.</string>
+    <string name="scrapbook_pick_photos">Select photos</string>
+    <string name="scrapbook_template_label">Templates</string>
+    <string name="scrapbook_preview_label">Preview</string>
+    <string name="scrapbook_empty_state">Start by selecting a few photos from your gallery.</string>
+    <string name="scrapbook_export_pdf">Export PDF</string>
+    <string name="scrapbook_photo_content_description">Selected scrapbook photo</string>
+    <string name="scrapbook_template_floral">Floral</string>
+    <string name="scrapbook_template_music">Music</string>
+    <string name="scrapbook_template_tech">Tech</string>
+    <string name="scrapbook_template_travel">Travel</string>
+    <string name="scrapbook_export_success">Scrapbook saved to %1$s</string>
+    <string name="scrapbook_export_error">Could not export scrapbook. Please try again.</string>
+    <string name="scrapbook_no_photos">Add at least one photo to create your scrapbook.</string>
+    <string name="scrapbook_share_pdf">Share scrapbook PDF</string>
+    <string name="scrapbook_share_error">No compatible app found to share the PDF.</string>
+    <string name="scrapbook_max_selection">Only the first %1$d photos were added.</string>
+</resources>
