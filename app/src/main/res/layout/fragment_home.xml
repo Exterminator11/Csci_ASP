@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F5F5F5"
     android:padding="16dp"
     tools:context=".HomeFragment">
 
@@ -11,41 +12,54 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Row 1 -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardScrapbook"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:cardBackgroundColor="#E3F2FD"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:layout_constraintBottom_toTopOf="@id/cardRow2_1"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@id/cardMovies"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="24dp">
+                android:layout_height="match_parent"
+                android:padding="16dp">
 
                 <TextView
                     android:id="@+id/textScrapbookTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:text="@string/home_scrapbook_card_title"
-                    android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                    android:textColor="#1565C0"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toTopOf="@id/textScrapbookDescription"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_chainStyle="packed" />
 
                 <TextView
                     android:id="@+id/textScrapbookDescription"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:gravity="center"
                     android:text="@string/home_scrapbook_card_description"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                    android:textColor="#424242"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/textScrapbookTitle" />
@@ -57,37 +71,50 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardMovies"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FCE4EC"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:layout_constraintBottom_toTopOf="@id/cardRow2_2"
+            app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cardScrapbook">
+            app:layout_constraintStart_toEndOf="@id/cardScrapbook"
+            app:layout_constraintTop_toTopOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="24dp">
+                android:layout_height="match_parent"
+                android:padding="16dp">
 
                 <TextView
                     android:id="@+id/textMoviesTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:text="@string/home_movies_card_title"
-                    android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                    android:textColor="#C2185B"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toTopOf="@id/textMoviesDescription"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_chainStyle="packed" />
 
                 <TextView
                     android:id="@+id/textMoviesDescription"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:gravity="center"
                     android:text="@string/home_movies_card_description"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                    android:textColor="#424242"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/textMoviesTitle" />
@@ -96,7 +123,173 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Row 2 - Placeholder cards -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardRow2_1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#E8F5E9"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:layout_constraintBottom_toTopOf="@id/cardRow3_1"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@id/cardRow2_2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardScrapbook">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Feature 3"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textColor="#2E7D32"
+                android:textStyle="bold" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardRow2_2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FFF3E0"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:layout_constraintBottom_toTopOf="@id/cardRow3_2"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/cardRow2_1"
+            app:layout_constraintTop_toBottomOf="@id/cardMovies">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Feature 4"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textColor="#E65100"
+                android:textStyle="bold" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Row 3 - Placeholder cards -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardRow3_1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#F3E5F5"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:layout_constraintBottom_toTopOf="@id/cardRow4_1"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@id/cardRow3_2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardRow2_1">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Feature 5"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textColor="#6A1B9A"
+                android:textStyle="bold" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardRow3_2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#E0F2F1"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:layout_constraintBottom_toTopOf="@id/cardRow4_2"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/cardRow3_1"
+            app:layout_constraintTop_toBottomOf="@id/cardRow2_2">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Feature 6"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textColor="#00695C"
+                android:textStyle="bold" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Row 4 - Placeholder cards -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardRow4_1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FFF9C4"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@id/cardRow4_2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardRow3_1">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Feature 7"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textColor="#F57F17"
+                android:textStyle="bold" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardRow4_2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FFEBEE"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/cardRow4_1"
+            app:layout_constraintTop_toBottomOf="@id/cardRow3_2">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Feature 8"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textColor="#C62828"
+                android:textStyle="bold" />
+
+        </com.google.android.material.card.MaterialCardView>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>
-
