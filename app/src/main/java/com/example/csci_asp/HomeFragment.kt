@@ -73,11 +73,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupRecycler() {
+        binding.cardCameraRoll.isVisible = false
         binding.recyclerDevicePhotos.apply {
             layoutManager = GridLayoutManager(requireContext(), 3)
             adapter = photoAdapter
             setHasFixedSize(true)
             isVisible = false
+            isFocusable = false
+            isFocusableInTouchMode = false
         }
     }
 
@@ -101,18 +104,26 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadPhotos() {
-        binding.textEmptyPhotos.isVisible = false
+        binding.textEmptyPhotos.apply {
+            text = getString(R.string.device_photos_empty)
+            isVisible = false
+        }
         viewLifecycleOwner.lifecycleScope.launch {
             val photos = withContext(Dispatchers.IO) {
                 runCatching { queryDevicePhotos() }.getOrDefault(emptyList())
             }
             photoAdapter.submitList(photos)
+            binding.cardCameraRoll.isVisible = true
             binding.recyclerDevicePhotos.isVisible = photos.isNotEmpty()
             binding.textEmptyPhotos.isVisible = photos.isEmpty()
+            binding.root.post {
+                binding.root.scrollTo(0, 0)
+            }
         }
     }
 
     private fun showPermissionDeniedState() {
+        binding.cardCameraRoll.isVisible = true
         binding.recyclerDevicePhotos.isVisible = false
         binding.textEmptyPhotos.apply {
             text = getString(R.string.device_photos_permission_denied)

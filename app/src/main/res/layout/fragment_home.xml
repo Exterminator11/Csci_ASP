@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F5F5"
+    android:descendantFocusability="beforeDescendants"
     android:padding="16dp"
     tools:context=".HomeFragment">
 
@@ -126,6 +127,8 @@
             android:id="@+id/cardPlaces"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
             android:clickable="true"
             android:focusable="true"
             app:cardBackgroundColor="#E8F5E9"
@@ -133,7 +136,9 @@
             app:cardElevation="6dp"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cardScrapbook">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardScrapbook"
+            app:layout_constraintBottom_toTopOf="@id/cardCameraRoll">
 
             <TextView
                 android:layout_width="match_parent"
@@ -146,46 +151,71 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <TextView
-            android:id="@+id/textGalleryHeading"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardCameraRoll"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/device_photos_heading"
-            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-            android:textColor="#212121"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cardPlaces" />
-
-        <TextView
-            android:id="@+id/textEmptyPhotos"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center"
-            android:text="@string/device_photos_empty"
-            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-            android:textColor="#616161"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textGalleryHeading" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerDevicePhotos"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:layout_marginBottom="24dp"
-            android:nestedScrollingEnabled="false"
-            android:overScrollMode="never"
+            android:clickable="false"
+            android:focusable="false"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textGalleryHeading"
-            tools:listitem="@layout/item_device_photo" />
+            app:layout_constraintTop_toBottomOf="@id/cardPlaces">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/textCameraRollHeading"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/device_photos_heading"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                    android:textColor="#212121"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/textEmptyPhotos"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:text="@string/device_photos_empty"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textColor="#616161"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/textCameraRollHeading" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerDevicePhotos"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/textEmptyPhotos"
+                    tools:listitem="@layout/item_device_photo" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
