@@ -21,6 +21,10 @@
         <action
             android:id="@+id/action_home_to_places"
             app:destination="@id/PlaceFragment" />
+
+        <action
+            android:id="@+id/action_home_to_photoDetail"
+            app:destination="@id/photoDetailFragment" />
     </fragment>
 
     <fragment
@@ -39,4 +43,9 @@
         android:name="com.example.csci_asp.places.PlaceFragment"
         android:label="fragment_places"
         tools:layout="@layout/fragment_places" />
+    <fragment
+        android:id="@+id/photoDetailFragment"
+        android:name="com.example.csci_asp.photos.PhotoDetailFragment"
+        android:label="@string/photo_detail_title"
+        tools:layout="@layout/fragment_photo_detail" />
 </navigation>

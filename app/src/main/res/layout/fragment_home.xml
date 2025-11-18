@@ -157,7 +157,7 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cardRow2_1" />
+            app:layout_constraintTop_toBottomOf="@id/cardPlaces" />
 
         <TextView
             android:id="@+id/textEmptyPhotos"
