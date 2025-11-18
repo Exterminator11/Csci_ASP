@@ -18,6 +18,9 @@
         <action
             android:id="@+id/action_home_to_movies"
             app:destination="@id/MoviesFragment" />
+        <action
+            android:id="@+id/action_home_to_places"
+            app:destination="@id/PlaceFragment" />
     </fragment>
 
     <fragment
@@ -31,4 +34,9 @@
         android:name="com.example.csci_asp.movies.MoviesFragment"
         android:label="@string/movies_heading"
         tools:layout="@layout/fragment_movies" />
+    <fragment
+        android:id="@+id/PlaceFragment"
+        android:name="com.example.csci_asp.places.PlaceFragment"
+        android:label="fragment_places"
+        tools:layout="@layout/fragment_places" />
 </navigation>

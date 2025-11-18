@@ -24,7 +24,7 @@
             app:cardBackgroundColor="#E3F2FD"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:layout_constraintBottom_toTopOf="@id/cardRow2_1"
+            app:layout_constraintBottom_toTopOf="@id/cardPlaces"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toStartOf="@id/cardMovies"
             app:layout_constraintStart_toStartOf="parent"
@@ -73,13 +73,11 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
-            android:layout_marginBottom="8dp"
             android:clickable="true"
             android:focusable="true"
             app:cardBackgroundColor="#FCE4EC"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:layout_constraintBottom_toTopOf="@id/cardRow2_1"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/cardScrapbook"
@@ -123,21 +121,17 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Feature 3 Card -->
+        <!-- Row 2 - Placeholder cards -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardRow2_1"
+            android:id="@+id/cardPlaces"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
             android:clickable="true"
             android:focusable="true"
             app:cardBackgroundColor="#E8F5E9"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/cardScrapbook">
 
