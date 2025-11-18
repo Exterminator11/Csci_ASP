@@ -66,6 +66,10 @@ class HomeFragment : Fragment() {
         binding.cardMovies.setOnClickListener {
             findNavController().navigate(R.id.action_home_to_movies)
         }
+
+        binding.cardPlaces.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_places)
+        }
     }
 
     private fun setupRecycler() {
