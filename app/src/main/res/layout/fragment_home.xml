@@ -152,6 +152,47 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <TextView
+            android:id="@+id/textGalleryHeading"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/device_photos_heading"
+            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+            android:textColor="#212121"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardRow2_1" />
+
+        <TextView
+            android:id="@+id/textEmptyPhotos"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="@string/device_photos_empty"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="#616161"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textGalleryHeading" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerDevicePhotos"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textGalleryHeading"
+            tools:listitem="@layout/item_device_photo" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>

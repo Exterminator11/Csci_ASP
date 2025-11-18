@@ -18,6 +18,10 @@
         <action
             android:id="@+id/action_home_to_movies"
             app:destination="@id/MoviesFragment" />
+
+        <action
+            android:id="@+id/action_home_to_photoDetail"
+            app:destination="@id/photoDetailFragment" />
     </fragment>
 
     <fragment
@@ -31,4 +35,10 @@
         android:name="com.example.csci_asp.movies.MoviesFragment"
         android:label="@string/movies_heading"
         tools:layout="@layout/fragment_movies" />
+
+    <fragment
+        android:id="@+id/photoDetailFragment"
+        android:name="com.example.csci_asp.photos.PhotoDetailFragment"
+        android:label="@string/photo_detail_title"
+        tools:layout="@layout/fragment_photo_detail" />
 </navigation>
