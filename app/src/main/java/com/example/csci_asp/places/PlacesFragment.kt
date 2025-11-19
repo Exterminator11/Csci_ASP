@@ -2,6 +2,7 @@ package com.example.csci_asp.places
 
 import android.Manifest
 //import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -19,6 +20,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 
 //import androidx.activity.result.PickVisualMediaRequest
 //import androidx.core.content.ContextCompat
@@ -82,6 +84,14 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
                     } else {
                         println("Photo at $uri does not have location metadata.")
                     }
+                }
+
+                if (locationsFound.size > 1) {
+                    val polylineOptions = PolylineOptions()
+                        .addAll(locationsFound)
+                        .color(Color.BLUE)      // Set the line color
+                        .width(10f)     // Set the line width in pixels
+                    googleMap?.addPolyline(polylineOptions)
                 }
 
                 // Zoom the map to fit the bounds
