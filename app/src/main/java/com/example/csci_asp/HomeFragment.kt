@@ -146,6 +146,7 @@ class HomeFragment : Fragment() {
             MediaStore.Images.Media.MIME_TYPE
         )
         val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+        val maxPhotos = 10
 
         resolver.query(collection, projection, null, null, sortOrder)?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
@@ -157,7 +158,7 @@ class HomeFragment : Fragment() {
             val heightColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.HEIGHT)
             val mimeColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)
 
-            while (cursor.moveToNext()) {
+            while (cursor.moveToNext() && photos.size < maxPhotos) {
                 val id = cursor.getLong(idColumn)
                 val displayName = cursor.getString(nameColumn)
                 val dateTaken = cursor.getLong(dateTakenColumn).takeIf { it > 0 }

@@ -20,6 +20,8 @@
     <string name="scrapbook_share_error">No compatible app found to share the PDF.</string>
     <string name="scrapbook_max_selection">Only the first %1$d photos were added.</string>
     <string name="home_title">Home</string>
+    <string name="home_welcome_title">Welcome</string>
+    <string name="home_welcome_subtitle">Create beautiful memories with photos, scrapbooks, and movies</string>
     <string name="home_scrapbook_card_title">Scrapbook</string>
     <string name="home_scrapbook_card_description">Create beautiful scrapbooks from your photos</string>
     <string name="home_movies_card_title">Movies</string>

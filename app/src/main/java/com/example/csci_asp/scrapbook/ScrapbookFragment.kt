@@ -21,6 +21,7 @@ import com.example.csci_asp.databinding.FragmentScrapbookBinding
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import kotlin.math.max
 
 class ScrapbookFragment : Fragment() {
 
@@ -32,6 +33,8 @@ class ScrapbookFragment : Fragment() {
     private lateinit var pdfExporter: PdfExporter
     private var pendingPhotos: List<Uri>? = null
     private var pendingTemplate: ScrapbookTemplate? = null
+    private var currentTemplateColumns: Int = MIN_COLUMNS
+    private var currentPhotoCount: Int = 0
 
     private val photoPickerLauncher =
         registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(MAX_SELECTION)) { uris ->
@@ -80,7 +83,7 @@ class ScrapbookFragment : Fragment() {
 
     private fun setupRecycler() {
         binding.recyclerPhotos.apply {
-            layoutManager = GridLayoutManager(context, 2)
+            layoutManager = GridLayoutManager(context, MIN_COLUMNS)
             adapter = photoAdapter
         }
     }
@@ -91,17 +94,23 @@ class ScrapbookFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.selectedPhotos.observe(viewLifecycleOwner) { photos ->
+        viewModel.shuffledPhotos.observe(viewLifecycleOwner) { photos ->
             photoAdapter.submitList(photos)
-            binding.textEmptyState.isGone = photos.isNotEmpty()
-            binding.recyclerPhotos.isVisible = photos.isNotEmpty()
-            updateExportState(photos.isNotEmpty())
+        }
+
+        viewModel.selectedPhotos.observe(viewLifecycleOwner) { photos ->
+            val hasPhotos = photos.isNotEmpty()
+            currentPhotoCount = photos.size
+            applySpanCount()
+            binding.textEmptyState.isGone = hasPhotos
+            binding.recyclerPhotos.isVisible = hasPhotos
+            updateExportState(hasPhotos)
         }
 
         viewModel.activeTemplate.observe(viewLifecycleOwner) { template ->
             selectTemplateChip(template.id)
-            (binding.recyclerPhotos.layoutManager as? GridLayoutManager)?.spanCount =
-                template.columns.coerceAtLeast(1)
+            currentTemplateColumns = max(template.columns, 1)
+            applySpanCount()
             photoAdapter.setRotationPattern(template.rotationPattern)
         }
     }
@@ -141,6 +150,15 @@ class ScrapbookFragment : Fragment() {
                     chip.isChecked = true
                 }
             }
+    }
+
+    private fun applySpanCount() {
+        val baseColumns = max(currentTemplateColumns, MIN_COLUMNS)
+        val desiredColumns = when {
+            currentPhotoCount in 1 until MIN_COLUMNS -> currentPhotoCount
+            else -> baseColumns
+        }
+        (binding.recyclerPhotos.layoutManager as? GridLayoutManager)?.spanCount = desiredColumns
     }
 
     private fun launchPhotoPicker() {
@@ -275,6 +293,7 @@ class ScrapbookFragment : Fragment() {
 
     companion object {
         private const val MAX_SELECTION = 20
+        private const val MIN_COLUMNS = 3
     }
 }
 

@@ -10,6 +10,9 @@ class ScrapbookViewModel : ViewModel() {
 
     private val _selectedPhotos = MutableLiveData<List<Uri>>(emptyList())
     val selectedPhotos: LiveData<List<Uri>> = _selectedPhotos
+    val shuffledPhotos: LiveData<List<Uri>> = _selectedPhotos.map { photos ->
+        if (photos.isEmpty()) emptyList() else photos.shuffled()
+    }
 
     private val _activeTemplateId = MutableLiveData(TemplateCatalog.default.id)
     val activeTemplate: LiveData<ScrapbookTemplate> =
