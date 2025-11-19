@@ -81,14 +81,50 @@ class PdfExporter(
         val padding = PAGE_PADDING
         val availableWidth = pageInfo.pageWidth.toFloat() - padding * 2
         val availableHeight = pageInfo.pageHeight.toFloat() - padding * 2
-        val cellWidth = (availableWidth - (SPACING * (columns - 1))) / columns
-        val cellHeight = (availableHeight - (SPACING * (rows - 1))) / rows
+
+        // First, get dimensions of all photos to calculate aspect ratios
+        val photoDimensions = photoUris.mapNotNull { uri ->
+            getImageDimensions(uri)?.let { (width, height) ->
+                uri to (width.toFloat() / height.toFloat()) // aspect ratio
+            }
+        }
+
+        // Calculate base cell size (will be adjusted per photo based on aspect ratio)
+        val baseCellWidth = (availableWidth - (SPACING * (columns - 1))) / columns
+        val baseCellHeight = (availableHeight - (SPACING * (rows - 1))) / rows
 
         photoUris.forEachIndexed { index, uri ->
             val columnIndex = index % columns
             val rowIndex = index / columns
-            val left = padding + columnIndex * (cellWidth + SPACING)
-            val top = padding + rowIndex * (cellHeight + SPACING)
+
+            // Get photo aspect ratio
+            val aspectRatio = photoDimensions.firstOrNull { it.first == uri }?.second
+                ?: 1f // Default to 1:1 if dimensions not available
+
+            // Calculate cell dimensions that maintain aspect ratio
+            // Use the smaller of the two constraints to ensure photo fits
+            val cellWidth: Float
+            val cellHeight: Float
+
+            if (aspectRatio > 1f) {
+                // Landscape: width-constrained
+                cellWidth = baseCellWidth
+                cellHeight = min(baseCellWidth / aspectRatio, baseCellHeight)
+            } else {
+                // Portrait or square: height-constrained
+                cellHeight = baseCellHeight
+                cellWidth = min(baseCellHeight * aspectRatio, baseCellWidth)
+            }
+
+            // Calculate position (centered within the base cell area)
+            val baseLeft = padding + columnIndex * (baseCellWidth + SPACING)
+            val baseTop = padding + rowIndex * (baseCellHeight + SPACING)
+            val baseRight = baseLeft + baseCellWidth
+            val baseBottom = baseTop + baseCellHeight
+
+            // Center the actual cell within the base cell
+            val left = baseLeft + (baseCellWidth - cellWidth) / 2
+            val top = baseTop + (baseCellHeight - cellHeight) / 2
             val right = left + cellWidth
             val bottom = top + cellHeight
 
@@ -112,6 +148,7 @@ class PdfExporter(
                 frameRect.bottom - PHOTO_INSET
             )
 
+            // Scale maintaining aspect ratio (this should now fit perfectly)
             val scale = min(
                 photoRect.width() / bitmap.width.toFloat(),
                 photoRect.height() / bitmap.height.toFloat()
@@ -137,6 +174,26 @@ class PdfExporter(
             canvas.drawBitmap(bitmap, null, bitmapRect, bitmapPaint)
             canvas.restore()
             bitmap.recycle()
+        }
+    }
+
+    /**
+     * Gets image dimensions without loading the full bitmap
+     */
+    private fun getImageDimensions(uri: Uri): Pair<Int, Int>? {
+        val resolver: ContentResolver = context.contentResolver
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        return try {
+            resolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream, null, options)
+                if (options.outWidth > 0 && options.outHeight > 0) {
+                    options.outWidth to options.outHeight
+                } else {
+                    null
+                }
+            }
+        } catch (_: Exception) {
+            null
         }
     }
 

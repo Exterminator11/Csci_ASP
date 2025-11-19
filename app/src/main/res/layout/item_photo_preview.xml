@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="@string/scrapbook_photo_content_description"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerInside" />
     </FrameLayout>
 </FrameLayout>
 
