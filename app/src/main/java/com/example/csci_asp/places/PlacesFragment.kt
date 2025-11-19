@@ -1,7 +1,7 @@
 package com.example.csci_asp.places
 
 import android.Manifest
-import android.content.pm.PackageManager
+//import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -20,7 +20,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 
 //import androidx.activity.result.PickVisualMediaRequest
-import androidx.core.content.ContextCompat
+//import androidx.core.content.ContextCompat
 import com.example.csci_asp.R
 import com.google.android.material.snackbar.Snackbar
 
@@ -39,14 +39,15 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
 
         // Initialize the permission launcher
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            val readImagesGranted = permissions[Manifest.permission.READ_MEDIA_IMAGES] ?: permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: false
-            val mediaLocationGranted = permissions[Manifest.permission.ACCESS_MEDIA_LOCATION] ?: false
-            val userSelectedMediaGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Check if either full or partial media access was granted, along with location.
+            val hasFullMediaAccess = permissions[Manifest.permission.READ_MEDIA_IMAGES] ?: permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: false
+            val hasPartialMediaAccess = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 permissions[Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED] ?: false
             } else false
+            val hasLocationAccess = permissions[Manifest.permission.ACCESS_MEDIA_LOCATION] ?: false
 
-            if ((readImagesGranted || userSelectedMediaGranted) && mediaLocationGranted) {
-                // Full access granted, launch the photo picker
+            if ((hasFullMediaAccess || hasPartialMediaAccess) && hasLocationAccess) {
+                // User has granted the necessary permissions, launch the picker.
                 photoPickerLauncher.launch("image/*")
             } else {
                 Snackbar.make(binding.root, "Full or partial media permission and location permissions are required.", Snackbar.LENGTH_LONG).show()
@@ -89,37 +90,22 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
 
         binding.selectPhotosButton.setOnClickListener {
-            val permissionsToRequest = mutableListOf(
-                Manifest.permission.ACCESS_MEDIA_LOCATION
-            )
-            // READ_MEDIA_IMAGES is only needed for Android 13+
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Build the list of permissions to request based on the Android version.
+            val permissionsToRequest = mutableListOf<String>()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14+
                 permissionsToRequest.add(Manifest.permission.READ_MEDIA_IMAGES)
-            } else {
-                // For older versions, use READ_EXTERNAL_STORAGE
+                permissionsToRequest.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13
+                permissionsToRequest.add(Manifest.permission.READ_MEDIA_IMAGES)
+            } else { // Below Android 13
                 permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
+            permissionsToRequest.add(Manifest.permission.ACCESS_MEDIA_LOCATION)
 
-            val hasReadPermission = ContextCompat.checkSelfPermission(
-                requireContext(),
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_IMAGES else Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-
-            val hasLocationPermission = ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_MEDIA_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-
-            when {
-                hasReadPermission && hasLocationPermission -> {
-                    // Both permissions are already granted
-                    photoPickerLauncher.launch("image/*")
-                }
-                else -> {
-                    // Request the permissions array
-                    permissionLauncher.launch(permissionsToRequest.toTypedArray())
-                }
-            }
+            // It's cleaner and more robust on modern Android to always launch the permission request.
+            // The system intelligently handles whether to show the dialog, launch the picker,
+            // or do nothing if permissions are already fully granted.
+            permissionLauncher.launch(permissionsToRequest.toTypedArray())
         }
     }
 
