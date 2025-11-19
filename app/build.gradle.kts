@@ -54,6 +54,11 @@ dependencies {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.exifinterface)
     implementation(libs.play.services.maps)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
