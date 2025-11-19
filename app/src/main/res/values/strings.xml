@@ -56,7 +56,7 @@
     <string name="music_clip_mellow_description">Mellow music</string>
     <string name="music_clip_playful">Playful</string>
     <string name="music_clip_playful_description">Playful music</string>
-    <string name="device_photos_heading">Your Camera Roll</string>
+    <string name="device_photos_heading">Your photos</string>
     <string name="device_photos_empty">We could not find any recent photos. Grant access or take a new picture to see it here.</string>
     <string name="device_photos_permission_denied">Photo access is disabled. Allow photo permissions in Settings to view your gallery here.</string>
     <string name="device_photo_content_description">Device photo thumbnail</string>
@@ -64,8 +64,8 @@
     <string name="photo_detail_metadata_heading">Photo metadata</string>
     <string name="photo_detail_caption_label">Caption</string>
     <string name="photo_detail_summary_label">Summary</string>
-    <string name="photo_detail_caption_hint">Add a short caption</string>
-    <string name="photo_detail_summary_hint">Write a longer summary or story</string>
+    <string name="photo_detail_caption_hint">Waiting for caption</string>
+    <string name="photo_detail_summary_hint">Waiting for summary</string>
     <string name="photo_detail_caption_action">Send caption to API</string>
     <string name="photo_detail_summary_action">Send summary to API</string>
     <string name="photo_detail_caption_placeholder_action">Caption will be sent to your API later.</string>
