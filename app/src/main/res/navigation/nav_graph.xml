@@ -41,7 +41,7 @@
     <fragment
         android:id="@+id/PlacesFragment"
         android:name="com.example.csci_asp.places.PlacesFragment"
-        android:label="fragment_places"
+        android:label="Places and Routes"
         tools:layout="@layout/fragment_places" />
     <fragment
         android:id="@+id/photoDetailFragment"

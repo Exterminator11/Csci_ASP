@@ -144,7 +144,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="Feature 3"
+                android:text="@string/places_and_routes"
                 android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
                 android:textColor="#2E7D32"
                 android:textStyle="bold" />
