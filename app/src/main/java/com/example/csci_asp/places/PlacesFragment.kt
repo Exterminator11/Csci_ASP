@@ -100,9 +100,8 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
                         // If there's only one marker, just zoom to it.
                         googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(locationsFound.first(), 15f))
                     } else {
-                        // If there are multiple markers, build the bounds and animate.
                         val bounds = boundsBuilder.build()
-                        // The '100' is padding in pixels, so markers aren't on the very edge.
+                        // Pad the edges by 100 pixels so markers aren't on the very edge.
                         val cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 100)
                         googleMap?.animateCamera(cameraUpdate)
                     }
