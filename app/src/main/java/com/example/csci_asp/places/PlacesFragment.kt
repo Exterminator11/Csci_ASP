@@ -17,6 +17,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 
 //import androidx.activity.result.PickVisualMediaRequest
@@ -56,21 +57,45 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
 
         // Initialize the launcher here.
         photoPickerLauncher =
-            registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri>? ->
                 val safeContext = context
-                if (uri == null || safeContext == null) {
+                if (uris.isNullOrEmpty() || safeContext == null) {
+                    println("No photos selected or context is null.")
                     return@registerForActivityResult
                 }
 
+                googleMap?.clear() // Clear existing markers before adding new ones
                 val contentResolver = safeContext.contentResolver
-                val photoLocation = PhotoLocation.readLocationMetadata(contentResolver, uri)
 
-                if (photoLocation != null) {
-                    println("Got (Lat,Lng)=(${photoLocation.latitude},${photoLocation.longitude}).")
-                    // If we have a location, update the map
-                    updateMapLocation(photoLocation)
-                } else {
-                    println("No location metadata found in the selected image.")
+                val boundsBuilder = LatLngBounds.builder()
+                val locationsFound = mutableListOf<LatLng>()
+
+                for (uri in uris) {
+                    val photoLocation = PhotoLocation.readLocationMetadata(contentResolver, uri)
+                    if (photoLocation != null) {
+                        println("Found photo at (Lat,Lng)=(${photoLocation.latitude},${photoLocation.longitude}).")
+                        // Add a marker for each photo that has location data
+                        googleMap?.addMarker(MarkerOptions().position(photoLocation).title("Photo Location"))
+                        // Include this location in our bounds
+                        boundsBuilder.include(photoLocation)
+                        locationsFound.add(photoLocation)
+                    } else {
+                        println("Photo at $uri does not have location metadata.")
+                    }
+                }
+
+                // Zoom the map to fit the bounds
+                if (locationsFound.isNotEmpty()) {
+                    if (locationsFound.size == 1) {
+                        // If there's only one marker, just zoom to it.
+                        googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(locationsFound.first(), 15f))
+                    } else {
+                        // If there are multiple markers, build the bounds and animate.
+                        val bounds = boundsBuilder.build()
+                        // The '100' is padding in pixels, so markers aren't on the very edge.
+                        val cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 100)
+                        googleMap?.animateCamera(cameraUpdate)
+                    }
                 }
             }
     }
@@ -102,9 +127,6 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
             }
             permissionsToRequest.add(Manifest.permission.ACCESS_MEDIA_LOCATION)
 
-            // It's cleaner and more robust on modern Android to always launch the permission request.
-            // The system intelligently handles whether to show the dialog, launch the picker,
-            // or do nothing if permissions are already fully granted.
             permissionLauncher.launch(permissionsToRequest.toTypedArray())
         }
     }
@@ -115,14 +137,6 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
         // For example, move to a default location
         val defaultLocation = LatLng(40.7128, -74.0060) // New York City
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
-    }
-
-    private fun updateMapLocation(location: LatLng) {
-        googleMap?.let { map ->
-            map.clear() // Remove any existing markers
-            map.addMarker(MarkerOptions().position(location).title("Photo Location"))
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 15f)) // Zoom in on the location
-        }
     }
 
     override fun onDestroyView() {
