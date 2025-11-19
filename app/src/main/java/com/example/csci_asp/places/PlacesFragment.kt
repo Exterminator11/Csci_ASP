@@ -1,7 +1,7 @@
 package com.example.csci_asp.places
 
 import android.Manifest
-//import android.content.pm.PackageManager
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import com.example.csci_asp.databinding.FragmentPlacesBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -69,10 +70,13 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
                 googleMap?.clear() // Clear existing markers before adding new ones
                 val contentResolver = safeContext.contentResolver
 
+                // Sort the selected photos by timestamp
+                val sortedUris = uris.sortedBy { uri -> PhotoLocation.readTimeStampMetadata(contentResolver, uri) }
+
                 val boundsBuilder = LatLngBounds.builder()
                 val locationsFound = mutableListOf<LatLng>()
 
-                for (uri in uris) {
+                for (uri in sortedUris) {
                     val photoLocation = PhotoLocation.readLocationMetadata(contentResolver, uri)
                     if (photoLocation != null) {
                         println("Found photo at (Lat,Lng)=(${photoLocation.latitude},${photoLocation.longitude}).")
@@ -124,19 +128,36 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
 
         binding.selectPhotosButton.setOnClickListener {
-            // Build the list of permissions to request based on the Android version.
-            val permissionsToRequest = mutableListOf<String>()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14+
-                permissionsToRequest.add(Manifest.permission.READ_MEDIA_IMAGES)
-                permissionsToRequest.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13
-                permissionsToRequest.add(Manifest.permission.READ_MEDIA_IMAGES)
-            } else { // Below Android 13
-                permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-            permissionsToRequest.add(Manifest.permission.ACCESS_MEDIA_LOCATION)
 
-            permissionLauncher.launch(permissionsToRequest.toTypedArray())
+            val readPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+            val locationPermission = Manifest.permission.ACCESS_MEDIA_LOCATION
+
+            val hasReadPermission = ContextCompat.checkSelfPermission(requireContext(), readPermission) == PackageManager.PERMISSION_GRANTED
+            val hasLocationPermission = ContextCompat.checkSelfPermission(requireContext(), locationPermission) == PackageManager.PERMISSION_GRANTED
+
+            val permissionsToRequest = mutableListOf<String>()
+            if (!hasReadPermission) {
+                // On Android 14+, add the user selection permission as well.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    permissionsToRequest.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+                }
+                permissionsToRequest.add(readPermission)
+            }
+            if (!hasLocationPermission) {
+                permissionsToRequest.add(locationPermission)
+            }
+
+            if (permissionsToRequest.isEmpty()) {
+                // All permissions are already granted, launch the picker directly.
+                photoPickerLauncher.launch("image/*")
+            } else {
+                // Request only the permissions that are missing.
+                permissionLauncher.launch(permissionsToRequest.toTypedArray())
+            }
         }
     }
 
