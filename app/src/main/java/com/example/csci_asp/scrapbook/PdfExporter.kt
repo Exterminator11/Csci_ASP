@@ -43,14 +43,15 @@ class PdfExporter(
         require(photoUris.isNotEmpty()) { "Photo list cannot be empty" }
 
         val document = PdfDocument()
+        val aspectRatioCache = mutableMapOf<Uri, Float>()
         try {
-            val pages = photoUris.chunked(max(1, template.photosPerPage))
+            val pages = paginatePhotos(photoUris, template, aspectRatioCache)
             pages.forEachIndexed { index, pagePhotos ->
                 val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, index + 1).create()
                 val page = document.startPage(pageInfo)
                 val canvas = page.canvas
                 drawBackground(canvas, template, pageInfo)
-                drawPhotos(canvas, pagePhotos, template, pageInfo)
+                drawPhotos(canvas, pagePhotos, template, pageInfo, aspectRatioCache)
                 document.finishPage(page)
             }
 
@@ -74,7 +75,8 @@ class PdfExporter(
         canvas: Canvas,
         photoUris: List<Uri>,
         template: ScrapbookTemplate,
-        pageInfo: PdfDocument.PageInfo
+        pageInfo: PdfDocument.PageInfo,
+        aspectRatioCache: MutableMap<Uri, Float>
     ) {
         val columns = max(1, template.columns)
         val padding = PAGE_PADDING
@@ -83,17 +85,10 @@ class PdfExporter(
         val columnHeights = FloatArray(columns) { padding }
         val placements = mutableListOf<PhotoPlacement>()
 
-        // First, get dimensions of all photos to calculate aspect ratios
-        val photoDimensions = photoUris.mapNotNull { uri ->
-            getImageDimensions(uri)?.let { (width, height) ->
-                uri to (width.toFloat() / height.toFloat()) // aspect ratio
-            }
-        }
-
         photoUris.forEachIndexed { index, uri ->
             // Get photo aspect ratio
-            val aspectRatio = photoDimensions.firstOrNull { it.first == uri }?.second
-                ?: 1f // Default to 1:1 if dimensions not available
+            val aspectRatio = aspectRatioCache.getOrPut(uri) { resolveAspectRatio(uri) }
+                .takeIf { it > 0f && it.isFinite() } ?: 1f // Default to 1:1 if dimensions not available
 
             val safeAspect = if (aspectRatio <= 0f) 1f else aspectRatio
             val columnIndex = index % columns
@@ -135,10 +130,13 @@ class PdfExporter(
             val targetWidth = scaledRect.width()
             val targetHeight = scaledRect.height()
 
+            val targetWidthPx = min(MAX_BITMAP_DIMENSION, max(1, targetWidth.toInt()))
+            val targetHeightPx = min(MAX_BITMAP_DIMENSION, max(1, targetHeight.toInt()))
+
             val bitmap = decodeScaledBitmap(
                 placement.uri,
-                max(1, targetWidth.toInt()),
-                max(1, targetHeight.toInt())
+                targetWidthPx,
+                targetHeightPx
             ) ?: return@forEachIndexed
 
             val frameRect = RectF(scaledRect)
@@ -257,6 +255,74 @@ class PdfExporter(
         return RectF(newLeft, newTop, newRight, newBottom)
     }
 
+    private fun paginatePhotos(
+        photoUris: List<Uri>,
+        template: ScrapbookTemplate,
+        aspectRatioCache: MutableMap<Uri, Float>
+    ): List<List<Uri>> {
+        if (photoUris.isEmpty()) return emptyList()
+
+        val columns = max(1, template.columns)
+        val padding = PAGE_PADDING
+        val availableWidth = PAGE_WIDTH.toFloat() - padding * 2
+        val columnWidth = (availableWidth - (SPACING * (columns - 1))) / columns
+        val maxContentHeight = PAGE_HEIGHT.toFloat() - padding * 2
+        val columnHeights = FloatArray(columns) { padding }
+
+        val pages = mutableListOf<List<Uri>>()
+        val currentPage = mutableListOf<Uri>()
+        var pageIndex = 0
+
+        fun resetColumns() {
+            for (i in columnHeights.indices) {
+                columnHeights[i] = padding
+            }
+        }
+
+        fun flushPage() {
+            if (currentPage.isNotEmpty()) {
+                pages += currentPage.toList()
+                currentPage.clear()
+            }
+            resetColumns()
+            pageIndex = 0
+        }
+
+        photoUris.forEach { uri ->
+            while (true) {
+                val aspectRatio = aspectRatioCache.getOrPut(uri) { resolveAspectRatio(uri) }
+                val safeAspect = aspectRatio.takeIf { it > 0f && it.isFinite() } ?: 1f
+                val columnIndex = if (columns == 0) 0 else pageIndex % columns
+                val top = columnHeights[columnIndex]
+                val cellHeight = columnWidth / safeAspect
+                val bottom = top + cellHeight
+                val updatedColumnHeight = bottom + PHOTO_SPACING + SPACING
+
+                var potentialMax = updatedColumnHeight
+                for (i in columnHeights.indices) {
+                    if (i == columnIndex) continue
+                    potentialMax = max(potentialMax, columnHeights[i])
+                }
+
+                val contentBottom = (potentialMax - SPACING).coerceAtLeast(padding)
+                val contentHeight = max(1f, contentBottom - padding)
+
+                if (contentHeight > maxContentHeight && currentPage.isNotEmpty()) {
+                    flushPage()
+                    continue
+                }
+
+                currentPage += uri
+                columnHeights[columnIndex] = updatedColumnHeight
+                pageIndex++
+                break
+            }
+        }
+
+        flushPage()
+        return pages
+    }
+
     companion object {
         private const val PAGE_WIDTH = 1240
         private const val PAGE_HEIGHT = 1754
@@ -266,6 +332,15 @@ class PdfExporter(
         private const val FRAME_STROKE = 6f
         private const val PHOTO_SPACING = 16f
         private const val PHOTO_CORNER_RADIUS = 32f
+        private const val MAX_BITMAP_DIMENSION = 1080
+    }
+
+    private fun resolveAspectRatio(uri: Uri): Float {
+        val dimensions = getImageDimensions(uri) ?: return 1f
+        val width = dimensions.first
+        val height = dimensions.second
+        if (width <= 0 || height <= 0) return 1f
+        return width.toFloat() / height.toFloat()
     }
 
     private fun ScrapbookTemplate.rotationFor(index: Int): Float =

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.csci_asp.R
 import com.example.csci_asp.databinding.FragmentPhotoDetailBinding
 import com.example.csci_asp.photos.api.AutoCaptionsRequest
@@ -69,7 +70,10 @@ class PhotoDetailFragment : Fragment() {
     }
 
     private fun renderPhoto(photo: DevicePhoto) {
-        binding.imageFullPhoto.setImageURI(photo.uri)
+        Glide.with(binding.imageFullPhoto)
+            .load(photo.uri)
+            .fitCenter()
+            .into(binding.imageFullPhoto)
 
         val unknownValue = getString(R.string.common_unknown)
 

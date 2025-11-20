@@ -1,8 +1,11 @@
 package com.example.csci_asp.photos
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -14,17 +17,23 @@ import java.util.TimeZone
 object PhotoUtils {
 
     /**
-     * Converts an image URI to base64 encoded string
-     * @param uri The URI of the image
-     * @param context The context to access content resolver
-     * @return Base64 encoded string or null if conversion fails
+     * Converts an image URI to base64 encoded string after downscaling/compressing.
+     * Keeps memory usage predictable while producing a smaller payload for upload.
      */
     fun convertImageToBase64(uri: Uri, context: Context): String? {
         return try {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                val bytes = inputStream.readBytes()
-                Base64.encodeToString(bytes, Base64.NO_WRAP)
-            }
+            val bitmap = decodeDownscaledBitmap(
+                uri = uri,
+                context = context,
+                reqWidth = BASE64_MAX_DIMENSION,
+                reqHeight = BASE64_MAX_DIMENSION
+            ) ?: return null
+
+            val output = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, BASE64_JPEG_QUALITY, output)
+            bitmap.recycle()
+
+            Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
         } catch (e: IOException) {
             e.printStackTrace()
             null
@@ -32,6 +41,54 @@ object PhotoUtils {
             e.printStackTrace()
             null
         }
+    }
+
+    private fun decodeDownscaledBitmap(
+        uri: Uri,
+        context: Context,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Bitmap? {
+        val resolver = context.contentResolver
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        try {
+            resolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream, null, options)
+            }
+        } catch (_: Exception) {
+            return null
+        }
+
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight)
+        options.inJustDecodeBounds = false
+        options.inPreferredConfig = Bitmap.Config.RGB_565 // use less memory
+
+        return try {
+            resolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream, null, options)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Int {
+        val (height, width) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+
+        if (height > reqHeight || width > reqWidth) {
+            var halfHeight = height / 2
+            var halfWidth = width / 2
+
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
     }
 
     /**
@@ -55,7 +112,7 @@ object PhotoUtils {
      */
     fun formatTimestampToISO8601(timestampMillis: Long?): String? {
         if (timestampMillis == null) return null
-        
+
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
         dateFormat.timeZone = TimeZone.getTimeZone("UTC")
         return dateFormat.format(timestampMillis)
@@ -74,5 +131,8 @@ object PhotoUtils {
         // This can be implemented later if needed using Google Places API or similar
         return null
     }
+
+    private const val BASE64_MAX_DIMENSION = 1280
+    private const val BASE64_JPEG_QUALITY = 80
 }
 

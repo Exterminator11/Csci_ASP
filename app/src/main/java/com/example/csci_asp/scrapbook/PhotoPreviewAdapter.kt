@@ -7,6 +7,7 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.csci_asp.databinding.ItemPhotoPreviewBinding
 
 class PhotoPreviewAdapter :
@@ -38,8 +39,10 @@ class PhotoPreviewAdapter :
 
         fun bind(uri: Uri, rotation: Float) {
             binding.imagePreview.scaleType = ImageView.ScaleType.FIT_CENTER
-            binding.imagePreview.setImageURI(null)
-            binding.imagePreview.setImageURI(uri)
+            Glide.with(binding.imagePreview)
+                .load(uri)
+                .fitCenter()
+                .into(binding.imagePreview)
             binding.frameContainer.rotation = rotation
         }
     }

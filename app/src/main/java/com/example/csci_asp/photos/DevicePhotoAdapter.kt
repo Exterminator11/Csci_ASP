@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.csci_asp.databinding.ItemDevicePhotoBinding
 
 class DevicePhotoAdapter(
@@ -29,7 +30,10 @@ class DevicePhotoAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(photo: DevicePhoto) {
-            binding.imageDevicePhoto.setImageURI(photo.uri)
+            Glide.with(binding.imageDevicePhoto)
+                .load(photo.uri)
+                .centerCrop()
+                .into(binding.imageDevicePhoto)
             binding.root.setOnClickListener { onPhotoClicked(photo) }
         }
     }

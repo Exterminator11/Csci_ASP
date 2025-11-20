@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Csci_ASP</string>
+    <string name="app_name">Travel Journal</string>
     <string name="action_settings">Settings</string>
     <string name="scrapbook_heading">Create a scrapbook</string>
     <string name="scrapbook_subtitle">Pick your favorite photos, apply a themed template, and export everything as a shareable PDF.</string>
