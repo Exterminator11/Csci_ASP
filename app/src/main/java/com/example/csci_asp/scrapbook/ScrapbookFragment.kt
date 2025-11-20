@@ -15,7 +15,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.csci_asp.R
 import com.example.csci_asp.databinding.FragmentScrapbookBinding
 import com.google.android.material.chip.Chip
@@ -30,6 +30,7 @@ class ScrapbookFragment : Fragment() {
 
     private val viewModel: ScrapbookViewModel by viewModels()
     private val photoAdapter = PhotoPreviewAdapter()
+    private lateinit var staggeredLayoutManager: StaggeredGridLayoutManager
     private lateinit var pdfExporter: PdfExporter
     private var pendingPhotos: List<Uri>? = null
     private var pendingTemplate: ScrapbookTemplate? = null
@@ -82,8 +83,14 @@ class ScrapbookFragment : Fragment() {
     }
 
     private fun setupRecycler() {
+        staggeredLayoutManager = StaggeredGridLayoutManager(
+            MIN_COLUMNS,
+            StaggeredGridLayoutManager.VERTICAL
+        ).apply {
+            gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS
+        }
         binding.recyclerPhotos.apply {
-            layoutManager = GridLayoutManager(context, MIN_COLUMNS)
+            layoutManager = staggeredLayoutManager
             adapter = photoAdapter
         }
     }
@@ -158,7 +165,7 @@ class ScrapbookFragment : Fragment() {
             currentPhotoCount in 1 until MIN_COLUMNS -> currentPhotoCount
             else -> baseColumns
         }
-        (binding.recyclerPhotos.layoutManager as? GridLayoutManager)?.spanCount = desiredColumns
+        staggeredLayoutManager.spanCount = max(1, desiredColumns)
     }
 
     private fun launchPhotoPicker() {

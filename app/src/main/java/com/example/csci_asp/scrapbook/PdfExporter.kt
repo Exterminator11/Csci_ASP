@@ -7,12 +7,12 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import androidx.core.content.ContextCompat
 import java.io.OutputStream
-import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.Dispatchers
@@ -77,10 +77,11 @@ class PdfExporter(
         pageInfo: PdfDocument.PageInfo
     ) {
         val columns = max(1, template.columns)
-        val rows = ceil(photoUris.size / columns.toFloat()).toInt()
         val padding = PAGE_PADDING
         val availableWidth = pageInfo.pageWidth.toFloat() - padding * 2
-        val availableHeight = pageInfo.pageHeight.toFloat() - padding * 2
+        val columnWidth = (availableWidth - (SPACING * (columns - 1))) / columns
+        val columnHeights = FloatArray(columns) { padding }
+        val placements = mutableListOf<PhotoPlacement>()
 
         // First, get dimensions of all photos to calculate aspect ratios
         val photoDimensions = photoUris.mapNotNull { uri ->
@@ -89,72 +90,66 @@ class PdfExporter(
             }
         }
 
-        // Calculate base cell size (will be adjusted per photo based on aspect ratio)
-        val baseCellWidth = (availableWidth - (SPACING * (columns - 1))) / columns
-        val baseCellHeight = (availableHeight - (SPACING * (rows - 1))) / rows
-
         photoUris.forEachIndexed { index, uri ->
-            val columnIndex = index % columns
-            val rowIndex = index / columns
-
             // Get photo aspect ratio
             val aspectRatio = photoDimensions.firstOrNull { it.first == uri }?.second
                 ?: 1f // Default to 1:1 if dimensions not available
 
-            // Calculate cell dimensions that maintain aspect ratio
-            // Use the smaller of the two constraints to ensure photo fits
-            val cellWidth: Float
-            val cellHeight: Float
-
-            if (aspectRatio > 1f) {
-                // Landscape: width-constrained
-                cellWidth = baseCellWidth
-                cellHeight = min(baseCellWidth / aspectRatio, baseCellHeight)
-            } else {
-                // Portrait or square: height-constrained
-                cellHeight = baseCellHeight
-                cellWidth = min(baseCellHeight * aspectRatio, baseCellWidth)
-            }
-
-            // Calculate position (centered within the base cell area)
-            val baseLeft = padding + columnIndex * (baseCellWidth + SPACING)
-            val baseTop = padding + rowIndex * (baseCellHeight + SPACING)
-            val baseRight = baseLeft + baseCellWidth
-            val baseBottom = baseTop + baseCellHeight
-
-            // Center the actual cell within the base cell
-            val left = baseLeft + (baseCellWidth - cellWidth) / 2
-            val top = baseTop + (baseCellHeight - cellHeight) / 2
+            val safeAspect = if (aspectRatio <= 0f) 1f else aspectRatio
+            val columnIndex = index % columns
+            val left = padding + columnIndex * (columnWidth + SPACING)
+            val top = columnHeights[columnIndex]
+            val cellWidth = columnWidth
+            val cellHeight = columnWidth / safeAspect
             val right = left + cellWidth
             val bottom = top + cellHeight
 
+            val inset = PHOTO_SPACING / 2f
+            val insetRect = RectF(
+                left + inset,
+                top + inset,
+                right - inset,
+                bottom - inset
+            )
+
+            placements += PhotoPlacement(uri, insetRect)
+            columnHeights[columnIndex] = bottom + PHOTO_SPACING + SPACING
+        }
+
+        val contentBottom = columnHeights.maxOrNull()?.minus(SPACING) ?: padding
+        val contentHeight = max(1f, contentBottom - padding)
+        val availableHeight = pageInfo.pageHeight - padding * 2
+        val scale = if (contentHeight > availableHeight) {
+            availableHeight / contentHeight
+        } else {
+            1f
+        }
+
+        placements.forEachIndexed { index, placement ->
+            val scaledRect = if (scale < 1f) {
+                scaleRectFromPadding(placement.rect, padding, availableWidth, scale)
+            } else {
+                placement.rect
+            }
+
+            val targetWidth = scaledRect.width()
+            val targetHeight = scaledRect.height()
+
             val bitmap = decodeScaledBitmap(
-                uri,
-                max(1, (cellWidth - FRAME_MARGIN * 2).toInt()),
-                max(1, (cellHeight - FRAME_MARGIN * 2).toInt())
+                placement.uri,
+                max(1, targetWidth.toInt()),
+                max(1, targetHeight.toInt())
             ) ?: return@forEachIndexed
 
-            val frameRect = RectF(
-                left + FRAME_MARGIN,
-                top + FRAME_MARGIN,
-                right - FRAME_MARGIN,
-                bottom - FRAME_MARGIN
-            )
+            val frameRect = RectF(scaledRect)
+            val photoRect = RectF(scaledRect)
 
-            val photoRect = RectF(
-                frameRect.left + PHOTO_INSET,
-                frameRect.top + PHOTO_INSET,
-                frameRect.right - PHOTO_INSET,
-                frameRect.bottom - PHOTO_INSET
-            )
-
-            // Scale maintaining aspect ratio (this should now fit perfectly)
-            val scale = min(
+            val bitmapScale = min(
                 photoRect.width() / bitmap.width.toFloat(),
                 photoRect.height() / bitmap.height.toFloat()
             )
-            val scaledWidth = bitmap.width * scale
-            val scaledHeight = bitmap.height * scale
+            val scaledWidth = bitmap.width * bitmapScale
+            val scaledHeight = bitmap.height * bitmapScale
             val bitmapLeft = photoRect.left + (photoRect.width() - scaledWidth) / 2
             val bitmapTop = photoRect.top + (photoRect.height() - scaledHeight) / 2
             val bitmapRect = RectF(
@@ -171,7 +166,13 @@ class PdfExporter(
             canvas.rotate(angle, centerX, centerY)
             canvas.drawRoundRect(frameRect, FRAME_RADIUS, FRAME_RADIUS, framePaint)
             canvas.drawRoundRect(frameRect, FRAME_RADIUS, FRAME_RADIUS, frameStrokePaint)
+            canvas.save()
+            val clipPath = Path().apply {
+                addRoundRect(bitmapRect, PHOTO_CORNER_RADIUS, PHOTO_CORNER_RADIUS, Path.Direction.CW)
+            }
+            canvas.clipPath(clipPath)
             canvas.drawBitmap(bitmap, null, bitmapRect, bitmapPaint)
+            canvas.restore()
             canvas.restore()
             bitmap.recycle()
         }
@@ -237,15 +238,34 @@ class PdfExporter(
         return inSampleSize
     }
 
+    private data class PhotoPlacement(
+        val uri: Uri,
+        val rect: RectF
+    )
+
+    private fun scaleRectFromPadding(
+        rect: RectF,
+        padding: Float,
+        availableWidth: Float,
+        scale: Float
+    ): RectF {
+        val horizontalOffset = (availableWidth - availableWidth * scale) / 2f
+        val newLeft = padding + horizontalOffset + (rect.left - padding) * scale
+        val newTop = padding + (rect.top - padding) * scale
+        val newRight = newLeft + rect.width() * scale
+        val newBottom = newTop + rect.height() * scale
+        return RectF(newLeft, newTop, newRight, newBottom)
+    }
+
     companion object {
         private const val PAGE_WIDTH = 1240
         private const val PAGE_HEIGHT = 1754
         private const val SPACING = 32f
         private const val PAGE_PADDING = 72f
-        private const val FRAME_MARGIN = 20f
         private const val FRAME_RADIUS = 36f
         private const val FRAME_STROKE = 6f
-        private const val PHOTO_INSET = 18f
+        private const val PHOTO_SPACING = 16f
+        private const val PHOTO_CORNER_RADIUS = 32f
     }
 
     private fun ScrapbookTemplate.rotationFor(index: Int): Float =

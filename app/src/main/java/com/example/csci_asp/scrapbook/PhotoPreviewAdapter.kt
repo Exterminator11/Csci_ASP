@@ -37,7 +37,7 @@ class PhotoPreviewAdapter :
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(uri: Uri, rotation: Float) {
-            binding.imagePreview.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            binding.imagePreview.scaleType = ImageView.ScaleType.FIT_CENTER
             binding.imagePreview.setImageURI(null)
             binding.imagePreview.setImageURI(uri)
             binding.frameContainer.rotation = rotation

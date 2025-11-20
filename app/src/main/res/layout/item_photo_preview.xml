@@ -1,27 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/frameContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="4dp"
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <FrameLayout
-        android:id="@+id/frameContainer"
+    <ImageView
+        android:id="@+id/imagePreview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_photo_preview"
-        android:clipChildren="false"
-        android:clipToPadding="false"
-        android:padding="8dp">
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/scrapbook_photo_content_description"
+        android:scaleType="fitCenter" />
 
-        <ImageView
-            android:id="@+id/imagePreview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/scrapbook_photo_content_description"
-            android:scaleType="centerInside" />
-    </FrameLayout>
 </FrameLayout>
-
