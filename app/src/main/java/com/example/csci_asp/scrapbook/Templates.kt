@@ -27,9 +27,9 @@ object TemplateCatalog {
             id = "music",
             labelRes = R.string.scrapbook_template_music,
             backgroundRes = R.drawable.bg_template_music,
-            photosPerPage = 3,
-            columns = 3,
-            rotationPattern = listOf(-6f, 0f, 6f)
+            photosPerPage = 4,
+            columns = 2,
+            rotationPattern = listOf(-4f, 2.5f, -2.5f, 5f)
         ),
         ScrapbookTemplate(
             id = "tech",
@@ -37,15 +37,15 @@ object TemplateCatalog {
             backgroundRes = R.drawable.bg_template_tech,
             photosPerPage = 4,
             columns = 2,
-            rotationPattern = listOf(-2f, 2f, 0f, -3f)
+            rotationPattern = listOf(-4f, 2.5f, -2.5f, 5f)
         ),
         ScrapbookTemplate(
             id = "travel",
             labelRes = R.string.scrapbook_template_travel,
             backgroundRes = R.drawable.bg_template_travel,
-            photosPerPage = 5,
+            photosPerPage = 4,
             columns = 2,
-            rotationPattern = listOf(-5f, 3f, -2f, 5f, 0f)
+            rotationPattern = listOf(-4f, 2.5f, -2.5f, 5f)
         )
     )
 
