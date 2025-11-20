@@ -11,6 +11,7 @@ import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.view.Surface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -40,10 +41,12 @@ class VideoExporter(
         // Create video from images
         val tempVideo = File(context.cacheDir, "video_temp_${System.currentTimeMillis()}.mp4")
         try {
+            Log.d(TAG, "Starting video creation: photos=${photoUris.size}, audioUri=$audioUri")
             createVideoFromImages(photoUris, tempVideo)
 
             // If audio is provided, combine with video and write to outputFile (overwrite)
             if (audioUri != null) {
+                Log.d(TAG, "Attempting to mux audio into video. tempVideo=${tempVideo.absolutePath}")
                 combineVideoAndAudio(tempVideo, audioUri, outputFile)
             } else {
                 // Move tempVideo to outputFile
@@ -224,6 +227,7 @@ class VideoExporter(
      * This function is robust to missing audio or audio that cannot be parsed.
      */
     private fun combineVideoAndAudio(videoFile: File, audioUri: Uri, outputFile: File) {
+        Log.d(TAG, "Combining video (${videoFile.length()} bytes) with audio uri=$audioUri")
         val muxer = MediaMuxer(outputFile.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         var videoTrackIndex = -1
         var audioTrackIndex = -1
@@ -238,7 +242,7 @@ class VideoExporter(
             videoExtractor.setDataSource(videoFile.absolutePath)
             val vTrack = findTrack(videoExtractor, "video/")
             if (vTrack < 0) {
-                // no video track — bail out
+                Log.w(TAG, "No video track found in ${videoFile.absolutePath}, aborting mux.")
                 return
             }
             videoExtractor.selectTrack(vTrack)
@@ -268,9 +272,9 @@ class VideoExporter(
             try {
                 val uriString = audioUri.toString()
                 if (uriString.startsWith("android.resource://")) {
-                    context.contentResolver.openAssetFileDescriptor(audioUri, "r")?.fileDescriptor?.let { fd ->
-                        audioExtractor.setDataSource(fd)
-                    }
+                    context.contentResolver.openAssetFileDescriptor(audioUri, "r")?.use { afd ->
+                        audioExtractor.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                    } ?: throw IllegalStateException("Missing asset FD for $audioUri")
                 } else {
                     // Content URI - copy to temp file
                     context.contentResolver.openInputStream(audioUri)?.use { input ->
@@ -292,14 +296,18 @@ class VideoExporter(
                     val audioFormat = audioExtractor.getTrackFormat(aTrack)
                     audioTrackIndex = muxer.addTrack(audioFormat)
                     audioExtractorHasData = true
+                    Log.d(TAG, "Audio track detected: format=$audioFormat")
                     audioDurationUs = if (audioFormat.containsKey(MediaFormat.KEY_DURATION)) {
                         audioFormat.getLong(MediaFormat.KEY_DURATION)
                     } else {
                         0L
                     }
+                } else {
+                    Log.w(TAG, "No audio track found inside uri=$audioUri")
                 }
             } catch (e: Exception) {
                 // ignore audio preparation errors and proceed without audio
+                Log.e(TAG, "Failed preparing audio track for $audioUri", e)
                 audioExtractorHasData = false
                 audioTrackIndex = -1
             } finally {
@@ -322,37 +330,43 @@ class VideoExporter(
                     val sampleSize = videoExtractor.readSampleData(buffer, 0)
                     if (sampleSize < 0) {
                         videoDone = true
-                        // Stop audio when video ends
-                        audioDone = true
+                        // Don't force audioDone here - let audio finish naturally
+                        Log.d(TAG, "Video samples exhausted, finishing remaining audio if any.")
                     } else {
                         bufferInfo.offset = 0
                         bufferInfo.size = sampleSize
-
-                        // Translate extractor flags to muxer/safe flags
                         bufferInfo.flags = translateExtractorFlags(videoExtractor.sampleFlags)
-
                         bufferInfo.presentationTimeUs = videoExtractor.sampleTime
                         muxer.writeSampleData(videoTrackIndex, buffer, bufferInfo)
                         videoExtractor.advance()
                     }
                 }
 
-                if (!audioDone && audioExtractorHasData && !videoDone) {
+                // Process audio independently - loop it if shorter than video
+                if (!audioDone && audioExtractorHasData) {
                     val sampleSize = audioExtractor.readSampleData(buffer, 0)
                     if (sampleSize < 0) {
-                        // Audio has ended - stop it (no looping)
-                        audioDone = true
+                        // Audio ended - check if we need to loop it
+                        if (videoDurationUs > 0 && audioTimeOffset < videoDurationUs) {
+                            // Loop: seek back to start and continue
+                            audioExtractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+                            audioTimeOffset += audioDurationUs
+                            Log.d(TAG, "Looping audio. audioTimeOffset=$audioTimeOffset us")
+                        } else {
+                            audioDone = true
+                            Log.d(TAG, "Audio stream fully consumed.")
+                        }
                     } else {
                         val sampleTime = audioExtractor.sampleTime
                         val totalAudioTime = if (sampleTime >= 0) sampleTime + audioTimeOffset else audioTimeOffset
-                        
+
                         // Stop audio if it exceeds video duration
-                        if (videoDurationUs > 0 && totalAudioTime >= videoDurationUs) {
+                        if (videoDurationUs in 1..totalAudioTime) {
                             audioDone = true
+                            Log.d(TAG, "Audio trimmed to match video duration ($videoDurationUs us).")
                         } else {
                             bufferInfo.offset = 0
                             bufferInfo.size = sampleSize
-
                             bufferInfo.flags = translateExtractorFlags(audioExtractor.sampleFlags)
                             bufferInfo.presentationTimeUs = totalAudioTime
                             muxer.writeSampleData(audioTrackIndex, buffer, bufferInfo)
@@ -361,6 +375,7 @@ class VideoExporter(
                     }
                 }
             }
+            Log.d(TAG, "Muxing complete. Output=${outputFile.absolutePath}, size=${outputFile.length()} bytes")
         } finally {
             try { videoExtractor.release() } catch (_: Exception) {}
             try { audioExtractor.release() } catch (_: Exception) {}
@@ -440,5 +455,8 @@ class VideoExporter(
             }
         }
         return inSampleSize
+    }
+    companion object {
+        private const val TAG = "VideoExporter"
     }
 }
