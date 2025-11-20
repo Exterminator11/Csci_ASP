@@ -40,6 +40,24 @@ class PhotoLocation {
             }
             return null
         }
+
+        fun readTimeStampMetadata(resolver: ContentResolver, imageUri: Uri): String? {
+             try {
+                val originalUri = MediaStore.setRequireOriginal(imageUri)
+
+                resolver.openInputStream(originalUri)?.use { stream -> // Use the new originalUri
+                    val exifInterface = ExifInterface(stream)
+
+                    val timestamp = exifInterface.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+
+                    println("Timestamp: {$timestamp}")
+                    return timestamp
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "Could not read image stream.", e)
+            }
+            return null
+        }
 //        fun readLocationMetadata(context: Context, imageUri: Uri): LatLng? {
 //            try {
 //                // Open an InputStream from the image Uri
