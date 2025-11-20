@@ -79,5 +79,6 @@
     <string name="photo_detail_metadata_mime">Type: %1$s</string>
     <string name="photo_detail_metadata_date">Captured: %1$s</string>
     <string name="common_unknown">Unknown</string>
-    <string name="places_and_routes">Places and Routes</string>
+    <string name="places_and_routes">Places &amp; Routes</string>
+    <string name="textPlacesDescription">Put your photos on the map</string>
 </resources>
