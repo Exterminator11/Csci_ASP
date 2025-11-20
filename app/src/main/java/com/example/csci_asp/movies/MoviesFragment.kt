@@ -253,10 +253,12 @@ class MoviesFragment : Fragment() {
 
     private fun updatePlayPauseButton() {
         val isPlaying = binding.videoPreview.isPlaying
-        binding.buttonPlayPause.text = if (isPlaying) {
-            getString(R.string.movies_pause)
+        if (isPlaying) {
+            binding.buttonPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+            binding.buttonPlayPause.contentDescription = getString(R.string.movies_pause)
         } else {
-            getString(R.string.movies_play)
+            binding.buttonPlayPause.setImageResource(android.R.drawable.ic_media_play)
+            binding.buttonPlayPause.contentDescription = getString(R.string.movies_play)
         }
     }
 

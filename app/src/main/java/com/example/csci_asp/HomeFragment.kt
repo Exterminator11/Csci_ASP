@@ -53,27 +53,11 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupFeatureCards()
         setupRecycler()
         determinePhotoAccess()
     }
 
-    private fun setupFeatureCards() {
-        binding.cardScrapbook.setOnClickListener {
-            findNavController().navigate(R.id.action_home_to_scrapbook)
-        }
-
-        binding.cardMovies.setOnClickListener {
-            findNavController().navigate(R.id.action_home_to_movies)
-        }
-
-        binding.cardPlaces.setOnClickListener {
-            findNavController().navigate(R.id.action_home_to_places)
-        }
-    }
-
     private fun setupRecycler() {
-        binding.cardCameraRoll.isVisible = false
         binding.recyclerDevicePhotos.apply {
             layoutManager = GridLayoutManager(requireContext(), 3)
             adapter = photoAdapter
@@ -113,17 +97,12 @@ class HomeFragment : Fragment() {
                 runCatching { queryDevicePhotos() }.getOrDefault(emptyList())
             }
             photoAdapter.submitList(photos)
-            binding.cardCameraRoll.isVisible = true
             binding.recyclerDevicePhotos.isVisible = photos.isNotEmpty()
             binding.textEmptyPhotos.isVisible = photos.isEmpty()
-            binding.root.post {
-                binding.root.scrollTo(0, 0)
-            }
         }
     }
 
     private fun showPermissionDeniedState() {
-        binding.cardCameraRoll.isVisible = true
         binding.recyclerDevicePhotos.isVisible = false
         binding.textEmptyPhotos.apply {
             text = getString(R.string.device_photos_permission_denied)
