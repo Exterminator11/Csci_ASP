@@ -183,7 +183,7 @@ class PlacesFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
 
-        val defaultLocation = LatLng(90.00, 45.00) // South Pole
+        val defaultLocation = LatLng(40.7128, -74.0060) // New York City
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
     }
 
