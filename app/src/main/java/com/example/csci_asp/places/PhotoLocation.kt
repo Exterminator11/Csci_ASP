@@ -8,6 +8,9 @@ import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 import com.google.android.gms.maps.model.LatLng
 import java.io.IOException
+import android.content.pm.PackageManager
+import android.os.Bundle
+import com.example.csci_asp.R
 
 class PhotoLocation {
 
@@ -15,11 +18,9 @@ class PhotoLocation {
         private const val TAG = "PhotoLocation"
         fun readLocationMetadata(resolver: ContentResolver, imageUri: Uri): LatLng? {
             try {
-                // IMPORTANT: Request the original URI to get full metadata.
-                // This is the key to preserving location data. [4, 5]
                 val originalUri = MediaStore.setRequireOriginal(imageUri)
 
-                resolver.openInputStream(originalUri)?.use { stream -> // Use the new originalUri
+                resolver.openInputStream(originalUri)?.use { stream ->
                     val exifInterface = ExifInterface(stream)
 
                     val latLong = exifInterface.latLong
@@ -58,36 +59,45 @@ class PhotoLocation {
             }
             return null
         }
-//        fun readLocationMetadata(context: Context, imageUri: Uri): LatLng? {
-//            try {
-//                // Open an InputStream from the image Uri
-//                val inputStream = context.contentResolver.openInputStream(imageUri)
-//
-//                inputStream?.use { stream ->
-//                    // Create an ExifInterface instance from the InputStream
-//                    val exifInterface = ExifInterface(stream)
-//
-//                    // Get the GPS coordinates as a float array
-//                    val latLong = exifInterface.latLong
-//
-//                    // Check if latLong is not null (meaning GPS data exists)
-//                    if (latLong != null && latLong.size == 2) {
-//                        val latitude = latLong[0]
-//                        val longitude = latLong[1]
-//                        return LatLng(latitude, longitude)
-//                    }
-//                }
-//            } catch (e: IOException) {
-//                e.printStackTrace()
-//            } catch (e: SecurityException) {
-//                // Handle cases where ACCESS_MEDIA_LOCATION permission might be denied
-//                e.printStackTrace()
-//            }
-//            return null
-//        }
+        suspend fun identifyPlace(context: Context, location: LatLng): String? {
+            val applicationInfo = context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
+            val apiKey = applicationInfo.metaData.getString("com.google.android.geo.API_KEY","")
+            val locationStr = "${location.latitude},${location.longitude}"
 
-        fun identifyPlace(context: Context, location: LatLng) {
-            //Call Google Places API
+            try {
+                val response = RetrofitClient.placesService.findNearbyPlaces(
+                    location = locationStr,
+                    apiKey = apiKey
+                )
+
+                if (response.isSuccessful && response.body() != null) {
+                    val placesResponse = response.body()!!
+                    val results = placesResponse.results
+
+                    val preferredTypes = listOf("point_of_interest","monument", "museum", "tourist_attraction")
+
+                    for (type in preferredTypes) {
+                        val preferredPlace = results.firstOrNull { it.types.contains(type) }
+                        if (preferredPlace != null) {
+                            Log.d(TAG, "Found preferred place of type '$type': ${preferredPlace.name}")
+                            return preferredPlace.name // Return the name of the best match and exit.
+                        }
+                    }
+
+                    val city = results.firstOrNull()?.plusCode?.compoundCode
+                        ?.split(" ")?.getOrNull(1)?.replace(",", "")
+                    if (city != null) {
+                        Log.d(TAG, "No preferred places found, falling back to city: $city")
+                        return city
+                    }
+
+                } else {
+                    Log.e(TAG, "API call failed with error: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Network request failed", e)
+            }
+            return null // Return null if nothing is found
         }
     }
 
